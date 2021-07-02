@@ -18,12 +18,14 @@ export class Storage {
   setItem(key: string, value: string): void {
     this.#data.set(key, value);
     this.#set.add(key);
+    this.#deleted.delete(key);
   }
 
   removeItem(key: string): void {
     if (this.#data.has(key)) {
       this.#data.delete(key);
       this.#deleted.add(key);
+      this.#set.delete(key);
     }
   }
 

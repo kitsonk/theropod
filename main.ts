@@ -92,6 +92,8 @@ app.use(async (ctx, next) => {
   console.log("storage", [...localStore.keys()]);
   await next();
   const keys = [...localStore.keys()];
+  console.log("set keys", [...localStore.keysSet()]);
+  console.log("del keys", [...localStore.keysDeleted()]);
   if (keys.length) {
     ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
     for (const key of localStore.keysSet()) {
