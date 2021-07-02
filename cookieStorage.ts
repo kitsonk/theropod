@@ -63,6 +63,8 @@ export class Storage {
 
   hydrate(entries: Iterable<readonly [string, string]>) {
     console.log("hydrate()");
+    this.#set.clear();
+    this.#deleted.clear();
     for (const [key, value] of entries) {
       console.log("->", { key, value });
       this.#hydrated.add(key);

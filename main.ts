@@ -2,7 +2,10 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 // using the namespaced packages, because they work better under Deno.
 
-import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
+import {
+  FirebaseApp,
+  initializeApp,
+} from "https://cdn.skypack.dev/@firebase/app@exp?dts";
 import {
   getAuth,
   onAuthStateChanged,
@@ -16,6 +19,7 @@ import {
 
 import { bold, cyan, green } from "https://deno.land/std@0.100.0/fmt/colors.ts";
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
+import type { RouteParams, State } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
 // This is a "hack" to take local storage under Deploy and set them as cookies
 // in the client.  Currently, I am using oak's cookie management to actually
@@ -44,18 +48,11 @@ if (!("localStorage" in globalThis)) {
   });
 }
 
-// This is the "client" initialization keys, these end up in a client
-// un-encrypted but you still need a login to the app to do anything.
-const firebase = initializeApp({
-  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
-  authDomain: "theropod-f4077.firebaseapp.com",
-  projectId: "theropod-f4077",
-  storageBucket: "theropod-f4077.appspot.com",
-  messagingSenderId: "391024490546",
-  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-});
+interface AppState extends State {
+  firebase: FirebaseApp;
+}
 
-const router = new Router();
+const router = new Router<RouteParams, AppState>();
 
 router.get("/", (ctx) => {
   ctx.response.body = "Hello world";
@@ -63,13 +60,13 @@ router.get("/", (ctx) => {
 
 router.get("/users", async (ctx) => {
   console.log("/users");
-  const db = getFirestore(firebase);
+  const db = getFirestore(ctx.state.firebase);
   const querySnapshot = await getDocs(collection(db, "users"));
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
   ctx.response.type = "json";
 });
 
-const app = new Application({
+const app = new Application<AppState>({
   keys: JSON.parse(Deno.env.get("THEROPOD_KEYS") ?? `["secret"]`),
 });
 
@@ -132,6 +129,20 @@ app.use(async (ctx, next) => {
   }
 });
 
+app.use((ctx, next) => {
+  // This is the "client" initialization keys, these end up in a client
+  // un-encrypted but you still need a login to the app to do anything.
+  ctx.state.firebase = initializeApp({
+    apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
+    authDomain: "theropod-f4077.firebaseapp.com",
+    projectId: "theropod-f4077",
+    storageBucket: "theropod-f4077.appspot.com",
+    messagingSenderId: "391024490546",
+    appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
+  });
+  return next();
+});
+
 // this middleware logs in the user if there isn't a cookie that logs them in
 // we have to set a flag, otherwise firebase things we are trying to re-auth a
 // user again and goes through the whole auth flow.  If we don't log in again,
@@ -140,7 +151,7 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   console.log(":auth");
   // This gets a handle to the auth part
-  const auth = getAuth(firebase);
+  const auth = getAuth(ctx.state.firebase);
   onAuthStateChanged(
     auth,
     (user: any) => {
