@@ -60,6 +60,8 @@ const auth = getAuth(firebase);
 // The default persistance is `local` which uses `localStorage` to save the
 // login.
 
+const db = getFirestore(firebase);
+
 const router = new Router();
 
 router.get("/", (ctx) => {
@@ -67,8 +69,6 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
-  const db = getFirestore(firebase);
-
   const querySnapshot = await getDocs(collection(db, "users"));
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
   ctx.response.type = "json";
