@@ -53,12 +53,13 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
-  const userCreds = await signInWithEmailAndPassword(
+  const start = Date.now();
+  await signInWithEmailAndPassword(
     auth,
     Deno.env.get("THEROPOD_USERNAME"),
     Deno.env.get("THEROPOD_PASSWORD"),
   );
-  console.log("userCreds", userCreds);
+  console.log("auth duration:", Date.now() - start);
 
   const db = getFirestore(firebase);
 
