@@ -1,4 +1,5 @@
 export class Storage {
+  #hydrated = new Set<string>();
   #data = new Map<string, string>();
   #set = new Set<string>();
   #deleted = new Set<string>();
@@ -28,10 +29,11 @@ export class Storage {
   removeItem(key: string): void {
     console.log("removeItem()", { key });
     if (this.#data.has(key)) {
-      console.log("  has");
       this.#data.delete(key);
-      this.#deleted.add(key);
       this.#set.delete(key);
+      if (this.#hydrated.has(key)) {
+        this.#deleted.add(key);
+      }
     }
   }
 
@@ -45,17 +47,17 @@ export class Storage {
   }
 
   keys() {
-    console.log("keys()", [...this.#data.keys()]);
+    console.log("#keys()", [...this.#data.keys()]);
     return this.#data.keys();
   }
 
   keysSet() {
-    console.log("keysSet()", [...this.#set.values()]);
+    console.log("#keysSet()", [...this.#set.values()]);
     return this.#set.values();
   }
 
   keysDeleted() {
-    console.log("keysDeleted()", [...this.#deleted.values()]);
+    console.log("#keysDeleted()", [...this.#deleted.values()]);
     return this.#deleted.values();
   }
 
@@ -63,6 +65,7 @@ export class Storage {
     console.log("hydrate()");
     for (const [key, value] of entries) {
       console.log("->", { key, value });
+      this.#hydrated.add(key);
       this.#data.set(key, value);
     }
   }
