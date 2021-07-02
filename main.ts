@@ -106,7 +106,7 @@ app.use(async (ctx, next) => {
       for (const key of keys) {
         const value = ctx.cookies.get(`TP_${key}`);
         if (value) {
-          entries.push([key, value]);
+          entries.push([key, atob(value)]);
         }
         localStore.hydrate(entries);
       }
@@ -119,7 +119,7 @@ app.use(async (ctx, next) => {
   if (keys.length) {
     ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
     for (const key of localStore.keysSet()) {
-      ctx.cookies.set(`TP_${key}`, localStore.getItem(key), {
+      ctx.cookies.set(`TP_${key}`, btoa(localStore.getItem(key) ?? ""), {
         overwrite: true,
       });
     }
