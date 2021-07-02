@@ -5,6 +5,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
 import {
   getAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
 import {
@@ -61,6 +62,7 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
+  console.log("/users");
   const db = getFirestore(firebase);
   const querySnapshot = await getDocs(collection(db, "users"));
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
@@ -97,6 +99,7 @@ app.use(async (ctx, next) => {
 // values don't contain anything that might look like a cookie argument, which
 // often values do.
 app.use(async (ctx, next) => {
+  console.log(":localStorage");
   const localStorageKeysStr = ctx.cookies.get("TP_KEYS");
   if (localStorageKeysStr) {
     try {
@@ -114,6 +117,7 @@ app.use(async (ctx, next) => {
     }
   }
   await next();
+  console.log(":post next");
   const keys = [...localStore.keys()];
   if (keys.length) {
     ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
@@ -134,11 +138,25 @@ app.use(async (ctx, next) => {
 // and the local storage has the auth credentials in local storage, the other
 // API calls work just fine.
 app.use(async (ctx, next) => {
+  console.log(":auth");
   // This gets a handle to the auth part
   const auth = getAuth(firebase);
+  onAuthStateChanged(
+    auth,
+    (user: any) => {
+      if (user) {
+        console.log("logged in");
+      } else {
+        console.log("logged out");
+      }
+    },
+    undefined,
+    undefined,
+  );
   // The default persistance is `local` which uses `localStorage` to save the
   // login.
   if (!ctx.cookies.get("TP_SIGNED_IN")) {
+    console.log("sign-in");
     await signInWithEmailAndPassword(
       auth,
       Deno.env.get("THEROPOD_USERNAME"),
