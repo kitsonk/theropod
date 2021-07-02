@@ -1,10 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
-// import {
-//   getAuth,
-//   signInWithEmailAndPassword,
-// } from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+} from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
 // import {
 //   collection,
 //   getDocs,
@@ -22,15 +22,17 @@ const firebase = initializeApp({
   appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
 });
 
-console.log(firebase);
+const auth = getAuth(firebase);
 
-// const auth = getAuth(firebase);
+console.log("username:", Deno.env.get("THEROPOD_USERNAME"));
 
-// await signInWithEmailAndPassword(
-//   auth,
-//   Deno.env.get("THEROPOD_USERNAME"),
-//   Deno.env.get("THEROPOD_PASSWORD"),
-// );
+const userCreds = await signInWithEmailAndPassword(
+  auth,
+  Deno.env.get("THEROPOD_USERNAME"),
+  Deno.env.get("THEROPOD_PASSWORD"),
+);
+
+console.log(userCreds);
 
 // const db = getFirestore(firebase);
 
