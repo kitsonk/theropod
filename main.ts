@@ -2,7 +2,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
 import {
+  browserLocalPersistence,
   getAuth,
+  setPersistence,
   signInWithEmailAndPassword,
 } from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
 import {
@@ -53,13 +55,12 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
-  const start = Date.now();
+  await setPersistence(auth, browserLocalPersistence);
   await signInWithEmailAndPassword(
     auth,
     Deno.env.get("THEROPOD_USERNAME"),
     Deno.env.get("THEROPOD_PASSWORD"),
   );
-  console.log("auth duration:", Date.now() - start);
 
   const db = getFirestore(firebase);
 
@@ -89,11 +90,8 @@ app.use(async (ctx, next) => {
       //
     }
   }
-  console.log("storage", [...localStore.keys()]);
   await next();
   const keys = [...localStore.keys()];
-  console.log("set keys", [...localStore.keysSet()]);
-  console.log("del keys", [...localStore.keysDeleted()]);
   if (keys.length) {
     ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
     for (const key of localStore.keysSet()) {
