@@ -13,6 +13,8 @@ import {
   getFirestore,
 } from "https://cdn.skypack.dev/@firebase/firestore@exp?dts";
 
+import { bold, cyan, green } from "https://deno.land/std@0.100.0/fmt/colors.ts";
+
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
 import { Storage } from "./cookieStorage.ts";
@@ -47,6 +49,7 @@ const firebase = initializeApp({
 });
 
 const auth = getAuth(firebase);
+await setPersistence(auth, browserLocalPersistence);
 
 const router = new Router();
 
@@ -55,7 +58,6 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
-  await setPersistence(auth, browserLocalPersistence);
   await signInWithEmailAndPassword(
     auth,
     Deno.env.get("THEROPOD_USERNAME"),
@@ -71,6 +73,25 @@ router.get("/users", async (ctx) => {
 
 const app = new Application({
   keys: JSON.parse(Deno.env.get("THEROPOD_KEYS") ?? `["secret"]`),
+});
+
+app.use(async (ctx, next) => {
+  await next();
+  const rt = ctx.response.headers.get("X-Response-Time");
+  console.log(
+    `${green(ctx.request.method)} ${cyan(ctx.request.url.pathname)} - ${
+      bold(
+        String(rt),
+      )
+    }`,
+  );
+});
+
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  ctx.response.headers.set("X-Response-Time", `${ms}ms`);
 });
 
 app.use(async (ctx, next) => {
