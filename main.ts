@@ -34,6 +34,10 @@ const db = getFirestore(firebase);
 
 const router = new Router();
 
+router.get("/", (ctx) => {
+  ctx.response.body = "Hello world";
+});
+
 router.get("/users", async (ctx) => {
   const querySnapshot = await getDocs(collection(db, "users"));
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
