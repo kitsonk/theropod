@@ -1,10 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
+// using the namespaced packages, because they work better under Deno.
+
 import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
 import {
-  browserLocalPersistence,
   getAuth,
-  setPersistence,
   signInWithEmailAndPassword,
 } from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
 import {
@@ -14,11 +14,14 @@ import {
 } from "https://cdn.skypack.dev/@firebase/firestore@exp?dts";
 
 import { bold, cyan, green } from "https://deno.land/std@0.100.0/fmt/colors.ts";
-
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
+// This is a "hack" to take local storage under Deploy and set them as cookies
+// in the client.  Currently, I am using oak's cookie management to actually
+// save and restore the keys and values.
 import { Storage } from "./cookieStorage.ts";
 
+// We only do this if we don't have session storage.
 const sessionStore = new Storage();
 if (!("sessionStorage" in globalThis)) {
   Object.defineProperty(globalThis, "sessionStorage", {
@@ -29,6 +32,7 @@ if (!("sessionStorage" in globalThis)) {
   });
 }
 
+// We only do this if we don't have local storage.
 const localStore = new Storage();
 if (!("localStorage" in globalThis)) {
   Object.defineProperty(globalThis, "localStorage", {
@@ -39,6 +43,8 @@ if (!("localStorage" in globalThis)) {
   });
 }
 
+// This is the "client" initialization keys, these end up in a client
+// un-encrypted but you still need a login to the app to do anything.
 const firebase = initializeApp({
   apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
   authDomain: "theropod-f4077.firebaseapp.com",
@@ -48,8 +54,11 @@ const firebase = initializeApp({
   appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
 });
 
+// This gets a handle to the auth part
 const auth = getAuth(firebase);
-await setPersistence(auth, browserLocalPersistence);
+
+// The default persistance is `local` which uses `localStorage` to save the
+// login.
 
 const router = new Router();
 
@@ -58,12 +67,6 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
-  await signInWithEmailAndPassword(
-    auth,
-    Deno.env.get("THEROPOD_USERNAME"),
-    Deno.env.get("THEROPOD_PASSWORD"),
-  );
-
   const db = getFirestore(firebase);
 
   const querySnapshot = await getDocs(collection(db, "users"));
@@ -108,7 +111,7 @@ app.use(async (ctx, next) => {
         localStore.hydrate(entries);
       }
     } catch {
-      //
+      // we just swallow errors here
     }
   }
   await next();
@@ -124,6 +127,18 @@ app.use(async (ctx, next) => {
   for (const key of localStore.keysDeleted()) {
     ctx.cookies.delete(`TP_${key}`, { overwrite: true });
   }
+});
+
+app.use(async (ctx, next) => {
+  if (!ctx.cookies.get("TP_SIGNED_IN")) {
+    await signInWithEmailAndPassword(
+      auth,
+      Deno.env.get("THEROPOD_USERNAME"),
+      Deno.env.get("THEROPOD_PASSWORD"),
+    );
+    ctx.cookies.set("TP_SIGNED_IN", "true");
+  }
+  return next();
 });
 
 app.use(router.routes());
