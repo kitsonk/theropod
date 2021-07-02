@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-// import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
+import { initializeApp } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
 // import {
 //   getAuth,
 //   signInWithEmailAndPassword,
@@ -13,14 +13,16 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
-// const firebase = initializeApp({
-//   apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
-//   authDomain: "theropod-f4077.firebaseapp.com",
-//   projectId: "theropod-f4077",
-//   storageBucket: "theropod-f4077.appspot.com",
-//   messagingSenderId: "391024490546",
-//   appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-// });
+const firebase = initializeApp({
+  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
+  authDomain: "theropod-f4077.firebaseapp.com",
+  projectId: "theropod-f4077",
+  storageBucket: "theropod-f4077.appspot.com",
+  messagingSenderId: "391024490546",
+  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
+});
+
+console.log(firebase);
 
 // const auth = getAuth(firebase);
 
