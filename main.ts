@@ -97,6 +97,12 @@ app.use(async (ctx, next) => {
   ctx.response.headers.set("X-Response-Time", `${ms}ms`);
 });
 
+// this is the middleware that takes local-storage to and from cookies, it
+// hydrates the store based on `"TP_KEYS"` and then when the rest of the
+// middleware has run, it sets or deletes any values that have changed.
+// It is important to base64 encode the values, as we need to make sure the
+// values don't contain anything that might look like a cookie argument, which
+// often values do.
 app.use(async (ctx, next) => {
   const localStorageKeysStr = ctx.cookies.get("TP_KEYS");
   if (localStorageKeysStr) {
@@ -129,6 +135,11 @@ app.use(async (ctx, next) => {
   }
 });
 
+// this middleware logs in the user if there isn't a cookie that logs them in
+// we have to set a flag, otherwise firebase things we are trying to re-auth a
+// user again and goes through the whole auth flow.  If we don't log in again,
+// and the local storage has the auth credentials in local storage, the other
+// API calls work just fine.
 app.use(async (ctx, next) => {
   if (!ctx.cookies.get("TP_SIGNED_IN")) {
     await signInWithEmailAndPassword(
