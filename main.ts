@@ -24,16 +24,18 @@ const firebase = initializeApp({
 
 const auth = getAuth(firebase);
 
-console.log("hello world!");
 console.log("username:", Deno.env.get("THEROPOD_USERNAME"));
 
-const userCreds = await signInWithEmailAndPassword(
-  auth,
-  Deno.env.get("THEROPOD_USERNAME"),
-  Deno.env.get("THEROPOD_PASSWORD"),
-);
-
-console.log(userCreds);
+try {
+  const userCreds = await signInWithEmailAndPassword(
+    auth,
+    Deno.env.get("THEROPOD_USERNAME"),
+    Deno.env.get("THEROPOD_PASSWORD"),
+  );
+  console.log("userCreds", userCreds);
+} catch (e) {
+  console.error(e);
+}
 
 // const db = getFirestore(firebase);
 
