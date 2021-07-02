@@ -89,14 +89,19 @@ app.use(async (ctx, next) => {
       //
     }
   }
-  console.log("storage", [...localStore.entries()]);
+  console.log("storage", [...localStore.keys()]);
   await next();
   const keys = [...localStore.keys()];
   if (keys.length) {
     ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
-    for (const [key, value] of localStore.entries()) {
-      ctx.cookies.set(`TP_${key}`, value);
+    for (const key of localStore.keysSet()) {
+      ctx.cookies.set(`TP_${key}`, localStore.getItem(key), {
+        overwrite: true,
+      });
     }
+  }
+  for (const key of localStore.keysDeleted()) {
+    ctx.cookies.delete(`TP_${key}`, { overwrite: true });
   }
 });
 

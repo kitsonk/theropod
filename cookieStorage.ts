@@ -1,5 +1,7 @@
 export class Storage {
   #data = new Map<string, string>();
+  #set = new Set<string>();
+  #deleted = new Set<string>();
 
   get length(): number {
     return this.#data.size;
@@ -15,22 +17,34 @@ export class Storage {
 
   setItem(key: string, value: string): void {
     this.#data.set(key, value);
+    this.#set.add(key);
   }
 
   removeItem(key: string): void {
-    this.#data.delete(key);
+    if (this.#data.has(key)) {
+      this.#data.delete(key);
+      this.#deleted.add(key);
+    }
   }
 
   clear(): void {
-    this.#data.clear;
+    this.#set.clear();
+    for (const key in this.#data.keys()) {
+      this.#deleted.add(key);
+    }
+    this.#data.clear();
   }
 
   keys() {
     return this.#data.keys();
   }
 
-  entries() {
-    return this.#data.entries();
+  keysSet() {
+    return this.#set.values();
+  }
+
+  keysDeleted() {
+    return this.#deleted.values();
   }
 
   hydrate(entries: Iterable<readonly [string, string]>) {
