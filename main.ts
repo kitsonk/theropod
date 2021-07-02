@@ -54,14 +54,6 @@ const firebase = initializeApp({
   appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
 });
 
-// This gets a handle to the auth part
-const auth = getAuth(firebase);
-
-// The default persistance is `local` which uses `localStorage` to save the
-// login.
-
-const db = getFirestore(firebase);
-
 const router = new Router();
 
 router.get("/", (ctx) => {
@@ -69,6 +61,7 @@ router.get("/", (ctx) => {
 });
 
 router.get("/users", async (ctx) => {
+  const db = getFirestore(firebase);
   const querySnapshot = await getDocs(collection(db, "users"));
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
   ctx.response.type = "json";
@@ -141,6 +134,10 @@ app.use(async (ctx, next) => {
 // and the local storage has the auth credentials in local storage, the other
 // API calls work just fine.
 app.use(async (ctx, next) => {
+  // This gets a handle to the auth part
+  const auth = getAuth(firebase);
+  // The default persistance is `local` which uses `localStorage` to save the
+  // login.
   if (!ctx.cookies.get("TP_SIGNED_IN")) {
     await signInWithEmailAndPassword(
       auth,
