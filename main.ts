@@ -88,6 +88,7 @@ app.use(async (ctx, next) => {
       //
     }
   }
+  console.log("storage", [...localStore.entries()]);
   await next();
   const keys = [...localStore.keys()];
   if (keys.length) {
