@@ -24,6 +24,7 @@ const firebase = initializeApp({
 
 const auth = getAuth(firebase);
 
+console.log("hello world!");
 console.log("username:", Deno.env.get("THEROPOD_USERNAME"));
 
 const userCreds = await signInWithEmailAndPassword(
