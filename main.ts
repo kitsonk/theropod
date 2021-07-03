@@ -13,17 +13,6 @@ import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 // save and restore the keys and values.
 import { Storage } from "./cookieStorage.ts";
 
-// This is the "client" initialization keys, these end up in a client
-// un-encrypted but you still need a login to the app to do anything.
-const theropod = firebase.initializeApp({
-  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
-  authDomain: "theropod-f4077.firebaseapp.com",
-  projectId: "theropod-f4077",
-  storageBucket: "theropod-f4077.appspot.com",
-  messagingSenderId: "391024490546",
-  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-}, "theropod");
-
 // We only do this if we don't have session storage.
 const sessionStore = new Storage();
 if (!("sessionStorage" in globalThis)) {
@@ -48,6 +37,23 @@ if (!("localStorage" in globalThis)) {
   });
 }
 
+// This is the "client" initialization keys, these end up in a client
+// un-encrypted but you still need a login to the app to do anything.
+const theropod = firebase.initializeApp({
+  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
+  authDomain: "theropod-f4077.firebaseapp.com",
+  projectId: "theropod-f4077",
+  storageBucket: "theropod-f4077.appspot.com",
+  messagingSenderId: "391024490546",
+  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
+}, "theropod");
+
+// This gets a handle to the auth part
+const auth = firebase.auth(theropod);
+auth.setPersistence("local");
+
+const db = firebase.firestore(theropod);
+
 const router = new Router();
 
 router.get("/", (ctx) => {
@@ -56,7 +62,6 @@ router.get("/", (ctx) => {
 
 router.get("/users", async (ctx) => {
   console.log("/users");
-  const db = firebase.firestore(theropod);
   const querySnapshot = await db.collection("users").get();
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
   ctx.response.type = "json";
@@ -130,9 +135,6 @@ app.use(async (ctx, next) => {
 // API calls work just fine.
 app.use(async (ctx, next) => {
   console.log(":auth");
-  // This gets a handle to the auth part
-  const auth = firebase.auth(theropod);
-  auth.setPersistence("local");
   // The default persistance is `local` which uses `localStorage` to save the
   // login.
   const signedInUid = ctx.cookies.get("TP_UID");
