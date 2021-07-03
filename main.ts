@@ -53,6 +53,7 @@ const auth = firebase.auth(theropod);
 auth.setPersistence("local");
 
 const db = firebase.firestore(theropod);
+await db.enablePersistence();
 
 const router = new Router();
 
@@ -116,7 +117,10 @@ app.use(async (ctx, next) => {
   console.log(":post next");
   const keys = [...localStore.keys()];
   if (keys.length) {
-    ctx.cookies.set("TP_KEYS", JSON.stringify(keys));
+    const value = JSON.stringify(keys);
+    if (value !== localStorageKeysStr) {
+      ctx.cookies.set("TP_KEYS", JSON.stringify(keys), { overwrite: true });
+    }
     for (const key of localStore.keysSet()) {
       ctx.cookies.set(`TP_${key}`, btoa(localStore.getItem(key) ?? ""), {
         overwrite: true,
@@ -139,6 +143,10 @@ app.use(async (ctx, next) => {
   // login.
   const signedInUid = ctx.cookies.get("TP_UID");
   const signedInUser = signedInUid != null ? users.get(signedInUid) : undefined;
+  console.log(
+    `cookie: ${signedInUid}, user: ${signedInUser?.uid}, current: ${auth
+      .currentUser?.uid}`,
+  );
   if (!signedInUid || !signedInUser || !auth.currentUser) {
     console.log("sign-in");
     const creds = await auth.signInWithEmailAndPassword(
