@@ -53,7 +53,6 @@ const auth = firebase.auth(theropod);
 auth.setPersistence("local");
 
 const db = firebase.firestore(theropod);
-await db.enablePersistence();
 
 const router = new Router();
 
