@@ -26,6 +26,7 @@ const theropod = firebase.initializeApp({
 
 // This gets a handle to the auth part
 const auth = firebase.auth(theropod);
+auth.setPersistence("local");
 
 // We only do this if we don't have session storage.
 const sessionStore = new Storage();
@@ -137,7 +138,8 @@ app.use(async (ctx, next) => {
   // login.
   const signedInUid = ctx.cookies.get("TP_UID");
   const signedInUser = signedInUid != null ? users.get(signedInUid) : undefined;
-  if (!signedInUid || !signedInUser) {
+  if (!signedInUid || !signedInUser || !auth.currentUser) {
+    console.log("sign-in");
     const creds = await auth.signInWithEmailAndPassword(
       Deno.env.get("THEROPOD_USERNAME")!,
       Deno.env.get("THEROPOD_PASSWORD")!,
@@ -147,7 +149,8 @@ app.use(async (ctx, next) => {
       users.set(user.uid, user);
       ctx.cookies.set("TP_UID", user.uid);
     }
-  } else if (signedInUser) {
+  } else if (signedInUser && signedInUser.uid !== auth.currentUser?.uid) {
+    console.log("swap user");
     await auth.updateCurrentUser(signedInUser);
   }
   return next();
