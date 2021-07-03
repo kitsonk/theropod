@@ -17,7 +17,7 @@ import {
   getFirestore,
 } from "https://cdn.skypack.dev/@firebase/firestore@exp?dts";
 
-import { bold, cyan, green } from "https://deno.land/std@0.100.0/fmt/colors.ts";
+import * as colors from "https://deno.land/std@0.100.0/fmt/colors.ts";
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 import type { RouteParams, State } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
@@ -74,11 +74,9 @@ app.use(async (ctx, next) => {
   await next();
   const rt = ctx.response.headers.get("X-Response-Time");
   console.log(
-    `${green(ctx.request.method)} ${cyan(ctx.request.url.pathname)} - ${
-      bold(
-        String(rt),
-      )
-    }`,
+    `${colors.green(ctx.request.method)} ${
+      colors.cyan(ctx.request.url.pathname)
+    } - ${colors.bold(String(rt))}`,
   );
 });
 
@@ -180,5 +178,25 @@ app.use(async (ctx, next) => {
 
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+app.addEventListener("error", (evt) => {
+  let msg = `[${colors.red("error")}] `;
+  if (evt.error instanceof Error) {
+    msg += `${evt.error.name}: ${evt.error.message}`;
+  } else {
+    msg += Deno.inspect(evt.error);
+  }
+  if (evt.context) {
+    msg += `\n\nrequest:\n  url: ${evt.context.request.url}\n  headers: ${
+      Deno.inspect([...evt.context.request.headers])
+    }\n`;
+  }
+  if (evt.error instanceof Error && evt.error.stack) {
+    const stack = evt.error.stack.split("\n");
+    stack.shift();
+    msg += `\n\n${stack.join("\n")}\n`;
+  }
+  console.error(msg);
+});
 
 addEventListener("fetch", app.fetchEventHandler());
