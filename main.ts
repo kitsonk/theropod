@@ -24,10 +24,6 @@ const theropod = firebase.initializeApp({
   appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
 }, "theropod");
 
-// This gets a handle to the auth part
-const auth = firebase.auth(theropod);
-auth.setPersistence("local");
-
 // We only do this if we don't have session storage.
 const sessionStore = new Storage();
 if (!("sessionStorage" in globalThis)) {
@@ -134,6 +130,9 @@ app.use(async (ctx, next) => {
 // API calls work just fine.
 app.use(async (ctx, next) => {
   console.log(":auth");
+  // This gets a handle to the auth part
+  const auth = firebase.auth(theropod);
+  auth.setPersistence("local");
   // The default persistance is `local` which uses `localStorage` to save the
   // login.
   const signedInUid = ctx.cookies.get("TP_UID");
