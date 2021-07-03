@@ -62,8 +62,11 @@ router.get("/", (ctx) => {
 
 router.get("/users", async (ctx) => {
   console.log("/users");
+  const start = Date.now();
   const querySnapshot = await db.collection("users").get();
+  console.log("post snapshot", Date.now() - start);
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
+  console.log("doc map", Date.now() - start);
   ctx.response.type = "json";
 });
 
