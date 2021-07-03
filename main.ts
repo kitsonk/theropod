@@ -1,22 +1,9 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-// using the namespaced packages, because they work better under Deno.
-
-import {
-  deleteApp,
-  FirebaseApp,
-  initializeApp,
-} from "https://cdn.skypack.dev/@firebase/app@exp?dts";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-} from "https://cdn.skypack.dev/@firebase/auth@exp?dts";
-import {
-  collection,
-  getDocs,
-  getFirestore,
-} from "https://cdn.skypack.dev/@firebase/firestore@exp?dts";
+// @deno-types=https://cdn.skypack.dev/-/firebase@v8.7.0-MrU9zUCxcEMCl2U7Tuz6/dist=es2020,mode=types/index.d.ts
+import firebase from "https://cdn.skypack.dev/firebase@8.7.0/app";
+import "https://cdn.skypack.dev/firebase@8.7.0/auth";
+import "https://cdn.skypack.dev/firebase@8.7.0/firestore";
 
 import * as colors from "https://deno.land/std@0.100.0/fmt/colors.ts";
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
@@ -26,6 +13,20 @@ import type { RouteParams, State } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 // in the client.  Currently, I am using oak's cookie management to actually
 // save and restore the keys and values.
 import { Storage } from "./cookieStorage.ts";
+
+// This is the "client" initialization keys, these end up in a client
+// un-encrypted but you still need a login to the app to do anything.
+const theropod = firebase.initializeApp({
+  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
+  authDomain: "theropod-f4077.firebaseapp.com",
+  projectId: "theropod-f4077",
+  storageBucket: "theropod-f4077.appspot.com",
+  messagingSenderId: "391024490546",
+  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
+}, "theropod");
+
+// This gets a handle to the auth part
+const auth = firebase.auth(theropod);
 
 // We only do this if we don't have session storage.
 const sessionStore = new Storage();
@@ -50,7 +51,7 @@ if (!("localStorage" in globalThis)) {
 }
 
 interface AppState extends State {
-  firebase: FirebaseApp;
+  users: string;
 }
 
 const router = new Router<RouteParams, AppState>();
@@ -61,8 +62,8 @@ router.get("/", (ctx) => {
 
 router.get("/users", async (ctx) => {
   console.log("/users");
-  const db = getFirestore(ctx.state.firebase);
-  const querySnapshot = await getDocs(collection(db, "users"));
+  const db = firebase.firestore(theropod);
+  const querySnapshot = await db.collection("users").get();
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
   ctx.response.type = "json";
 });
@@ -128,21 +129,6 @@ app.use(async (ctx, next) => {
   }
 });
 
-app.use(async (ctx, next) => {
-  // This is the "client" initialization keys, these end up in a client
-  // un-encrypted but you still need a login to the app to do anything.
-  ctx.state.firebase = initializeApp({
-    apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
-    authDomain: "theropod-f4077.firebaseapp.com",
-    projectId: "theropod-f4077",
-    storageBucket: "theropod-f4077.appspot.com",
-    messagingSenderId: "391024490546",
-    appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-  }, "theropod");
-  await next();
-  deleteApp(ctx.state.firebase);
-});
-
 // this middleware logs in the user if there isn't a cookie that logs them in
 // we have to set a flag, otherwise firebase things we are trying to re-auth a
 // user again and goes through the whole auth flow.  If we don't log in again,
@@ -150,29 +136,15 @@ app.use(async (ctx, next) => {
 // API calls work just fine.
 app.use(async (ctx, next) => {
   console.log(":auth");
-  // This gets a handle to the auth part
-  const auth = getAuth(ctx.state.firebase);
-  onAuthStateChanged(
-    auth,
-    (user: any) => {
-      if (user) {
-        console.log("logged in");
-      } else {
-        console.log("logged out");
-      }
-    },
-    undefined,
-    undefined,
-  );
   // The default persistance is `local` which uses `localStorage` to save the
   // login.
   if (!ctx.cookies.get("TP_SIGNED_IN")) {
     console.log("sign-in");
-    await signInWithEmailAndPassword(
-      auth,
-      Deno.env.get("THEROPOD_USERNAME"),
-      Deno.env.get("THEROPOD_PASSWORD"),
+    const userCreds = await auth.signInWithEmailAndPassword(
+      Deno.env.get("THEROPOD_USERNAME")!,
+      Deno.env.get("THEROPOD_PASSWORD")!,
     );
+    console.log(userCreds.user?.uid);
     ctx.cookies.set("TP_SIGNED_IN", "true");
   }
   return next();
