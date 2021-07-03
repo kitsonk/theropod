@@ -7,7 +7,6 @@ import "https://cdn.skypack.dev/firebase@8.7.0/firestore";
 
 import * as colors from "https://deno.land/std@0.100.0/fmt/colors.ts";
 import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
-import type { RouteParams, State } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
 // This is a "hack" to take local storage under Deploy and set them as cookies
 // in the client.  Currently, I am using oak's cookie management to actually
@@ -39,6 +38,8 @@ if (!("sessionStorage" in globalThis)) {
   });
 }
 
+const users = new Map<string, firebase.User>();
+
 // We only do this if we don't have local storage.
 const localStore = new Storage();
 if (!("localStorage" in globalThis)) {
@@ -50,11 +51,7 @@ if (!("localStorage" in globalThis)) {
   });
 }
 
-interface AppState extends State {
-  users: string;
-}
-
-const router = new Router<RouteParams, AppState>();
+const router = new Router();
 
 router.get("/", (ctx) => {
   ctx.response.body = "Hello world";
@@ -68,7 +65,7 @@ router.get("/users", async (ctx) => {
   ctx.response.type = "json";
 });
 
-const app = new Application<AppState>({
+const app = new Application({
   keys: JSON.parse(Deno.env.get("THEROPOD_KEYS") ?? `["secret"]`),
 });
 
@@ -138,14 +135,20 @@ app.use(async (ctx, next) => {
   console.log(":auth");
   // The default persistance is `local` which uses `localStorage` to save the
   // login.
-  if (!ctx.cookies.get("TP_SIGNED_IN")) {
-    console.log("sign-in");
-    const userCreds = await auth.signInWithEmailAndPassword(
+  const signedInUid = ctx.cookies.get("TP_UID");
+  const signedInUser = signedInUid != null ? users.get(signedInUid) : undefined;
+  if (!signedInUid || !signedInUser) {
+    const creds = await auth.signInWithEmailAndPassword(
       Deno.env.get("THEROPOD_USERNAME")!,
       Deno.env.get("THEROPOD_PASSWORD")!,
     );
-    console.log(userCreds.user?.uid);
-    ctx.cookies.set("TP_SIGNED_IN", "true");
+    const { user } = creds;
+    if (user) {
+      users.set(user.uid, user);
+      ctx.cookies.set("TP_UID", user.uid);
+    }
+  } else if (signedInUser) {
+    await auth.updateCurrentUser(signedInUser);
   }
   return next();
 });
