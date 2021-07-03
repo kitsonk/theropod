@@ -3,6 +3,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 // using the namespaced packages, because they work better under Deno.
 
 import {
+  deleteApp,
   FirebaseApp,
   initializeApp,
 } from "https://cdn.skypack.dev/@firebase/app@exp?dts";
@@ -127,7 +128,7 @@ app.use(async (ctx, next) => {
   }
 });
 
-app.use((ctx, next) => {
+app.use(async (ctx, next) => {
   // This is the "client" initialization keys, these end up in a client
   // un-encrypted but you still need a login to the app to do anything.
   ctx.state.firebase = initializeApp({
@@ -137,8 +138,9 @@ app.use((ctx, next) => {
     storageBucket: "theropod-f4077.appspot.com",
     messagingSenderId: "391024490546",
     appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-  });
-  return next();
+  }, "theropod");
+  await next();
+  deleteApp(ctx.state.firebase);
 });
 
 // this middleware logs in the user if there isn't a cookie that logs them in
