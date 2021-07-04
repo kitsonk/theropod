@@ -616,13 +616,14 @@ class XMLHttpRequest extends XMLHttpRequestEventTarget {
         return;
       }
       const total = extractLength(this.#response) ?? 0;
-      let lastInvoked = 0;
+      // let lastInvoked = 0;
       const processBodyChunk = (bytes: Uint8Array) => {
+        console.log(`xhr[${this.#uid}] processBodyChunk`, bytes.length);
         this.#receivedBytes = appendBytes(this.#receivedBytes, bytes);
-        if ((Date.now() - lastInvoked) <= 50) {
-          return;
-        }
-        lastInvoked = Date.now();
+        // if ((Date.now() - lastInvoked) <= 50) {
+        //   return;
+        // }
+        // lastInvoked = Date.now();
         if (this.#state === State.HEADERS_RECEIVED) {
           this.#state = State.LOADING;
         }
