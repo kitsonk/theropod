@@ -23,6 +23,8 @@ import {
   Status,
 } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
+import * as colors from "https://deno.land/std@0.100.0/fmt/colors.ts";
+
 // There is also middleware for oak that will help use with the setting the
 // localStorage cookies for the client
 import { virtualStorage } from "https://deno.land/x/virtualstorage@0.1.0/middleware.ts";
@@ -135,6 +137,26 @@ app.use(async (ctx, next) => {
 
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+app.addEventListener("error", (evt) => {
+  let msg = `[${colors.red("error")}] `;
+  if (evt.error instanceof Error) {
+    msg += `${evt.error.name}: ${evt.error.message}`;
+  } else {
+    msg += Deno.inspect(evt.error);
+  }
+  if (evt.context) {
+    msg += `\n\nrequest:\n  url: ${evt.context.request.url}\n  headers: ${
+      Deno.inspect([...evt.context.request.headers])
+    }\n`;
+  }
+  if (evt.error instanceof Error && evt.error.stack) {
+    const stack = evt.error.stack.split("\n");
+    stack.shift();
+    msg += `\n\n${stack.join("\n")}\n`;
+  }
+  console.error(msg);
+});
 
 // This sets up the application to start processing requests
 addEventListener("fetch", app.fetchEventHandler());
