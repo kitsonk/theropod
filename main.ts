@@ -24,14 +24,10 @@ const users = new Map<string, firebase.User>();
 
 // This is the "client" initialization keys, these end up in a client
 // un-encrypted but you still need a login to the app to do anything.
-const theropod = firebase.initializeApp({
-  apiKey: "AIzaSyDu6yo0rhstSThmpFEDQDiFvOnTJrMtv6c",
-  authDomain: "theropod-f4077.firebaseapp.com",
-  projectId: "theropod-f4077",
-  storageBucket: "theropod-f4077.appspot.com",
-  messagingSenderId: "391024490546",
-  appId: "1:391024490546:web:5fb4ab97e07b5af869e42b",
-}, "theropod");
+const theropod = firebase.initializeApp(
+  JSON.parse(Deno.env.get("FIREBASE_APP_CONFIG") ?? "{}"),
+  "theropod",
+);
 
 // This gets a handle to the auth part
 const auth = firebase.auth(theropod);
