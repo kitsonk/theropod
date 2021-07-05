@@ -91,13 +91,12 @@ router.post("/songs", async (ctx) => {
     ctx.throw(Status.BadRequest, "Must be a JSON document");
   }
   const song = await body.value;
-  console.log("song", song);
   if (!isSong(song)) {
     ctx.throw(Status.BadRequest, "Payload was not well formed");
   }
   const querySnapshot = await db
     .collection("songs")
-    .where("title", "==", title)
+    .where("title", "==", song.title)
     .get();
   await Promise.all(querySnapshot.map((doc) => doc.ref.delete()));
   const songsRef = db.collection("songs");
