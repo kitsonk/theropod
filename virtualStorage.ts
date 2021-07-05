@@ -7,15 +7,22 @@ const _deleted = Symbol("[[deleted]]");
 const _customInspect = Symbol.for("Deno.customInspect");
 
 class Storage {
-  [_hydrated] = new Set<string>();
-  [_data] = new Map<string, string>();
-  [_set] = new Set<string>();
-  [_deleted] = new Set<string>();
+  [_hydrated]: Set<string>;
+  [_data]: Map<string, string>;
+  [_set]: Set<string>;
+  [_deleted]: Set<string>;
 
   /** Returns the number of key/value pairs currently present in the list
    * associated with the object. */
   get length(): number {
     return this[_data].size;
+  }
+
+  constructor() {
+    this[_hydrated] = new Set();
+    this[_data] = new Map();
+    this[_set] = new Set();
+    this[_deleted] = new Set();
   }
 
   /** Returns the name of the _nth_ key in the list, or `null` if _n_ is greater
@@ -64,23 +71,21 @@ class Storage {
     this[_data].clear();
   }
 
-  // [_customInspect](
-  //   inspect: typeof Deno.inspect,
-  //   options?: Deno.InspectOptions,
-  // ) {
-  //   return `${this.constructor.name} ${
-  //     inspect({ length: this.length }, options)
-  //   }`;
-  // }
+  [_customInspect](
+    inspect: typeof Deno.inspect,
+    options?: Deno.InspectOptions,
+  ) {
+    return `${this.constructor.name} ${
+      inspect({ length: this.length }, options)
+    }`;
+  }
 }
 
 class StorageManager {
   [_storage]: Storage;
 
   constructor() {
-    const storage = new Storage();
-    console.log(storage);
-    this[_storage] = storage;
+    this[_storage] = new Storage();
   }
 
   /** Return an iterable of the keys currently within the store. */
@@ -112,14 +117,14 @@ class StorageManager {
     }
   }
 
-  // [_customInspect](
-  //   inspect: typeof Deno.inspect,
-  //   options?: Deno.InspectOptions,
-  // ) {
-  //   return `${this.constructor.name} ${
-  //     inspect({ "[[storage]]": this[_storage] }, options)
-  //   }`;
-  // }
+  [_customInspect](
+    inspect: typeof Deno.inspect,
+    options?: Deno.InspectOptions,
+  ) {
+    return `${this.constructor.name} ${
+      inspect({ "[[storage]]": this[_storage] }, options)
+    }`;
+  }
 }
 
 const localManager = new StorageManager();
