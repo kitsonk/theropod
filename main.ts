@@ -16,11 +16,11 @@ import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 import { installGlobals } from "./virtualStorage.ts";
 import { virtualStorage } from "./virtualStorageMiddleware.ts";
 
-console.log("hello");
-
 // Storage globals need to be installed prior to the application auth being
 // setup.
 installGlobals({ overwrite: true });
+
+console.log(globalThis.localStorage);
 
 const users = new Map<string, firebase.User>();
 

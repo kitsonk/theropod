@@ -63,10 +63,19 @@ class Storage {
     }
     this[_data].clear();
   }
+
+  [_customInspect](
+    inspect: typeof Deno.inspect,
+    options?: Deno.InspectOptions,
+  ) {
+    return `${this.constructor.name} ${
+      inspect({ length: this.length }, options)
+    }`;
+  }
 }
 
 class StorageManager {
-  [_storage]: Storage = new Storage();
+  [_storage] = new Storage();
 
   /** Return an iterable of the keys currently within the store. */
   keys(): IterableIterator<string> {
@@ -95,6 +104,15 @@ class StorageManager {
       this[_storage][_hydrated].add(key);
       this[_storage][_data].set(key, value);
     }
+  }
+
+  [_customInspect](
+    inspect: typeof Deno.inspect,
+    options?: Deno.InspectOptions,
+  ) {
+    return `${this.constructor.name} ${
+      inspect({ "[[storage]]": this[_storage] }, options)
+    }`;
   }
 }
 
@@ -134,7 +152,6 @@ export function installGlobals(options: InstallGlobalsOptions = {}): void {
         enumerable: true,
         configurable: true,
       });
-      console.log(globalThis.localStorage);
     }
   }
   if (session) {
