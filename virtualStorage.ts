@@ -117,6 +117,8 @@ class StorageManager {
 }
 
 const localManager = new StorageManager();
+console.log("localManager", localManager);
+console.log("localManager[_storage]", localManager[_storage]);
 const sessionManager = new StorageManager();
 
 /** Return the local storage manager. */
