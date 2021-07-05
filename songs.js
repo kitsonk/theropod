@@ -93,6 +93,7 @@ router.post("/songs", async (ctx) => {
     ctx.throw(Status.BadRequest, "Must be a JSON document");
   }
   const song = await body.value;
+  console.log("song", song);
   if (!isSong(song)) {
     ctx.throw(Status.BadRequest, "Payload was not well formed");
   }
@@ -127,7 +128,7 @@ app.use(async (ctx, next) => {
     const { user } = creds;
     if (user) {
       users.set(user.uid, user);
-      ctx.cookies.set("LOGGED_IN_UID");
+      ctx.cookies.set("LOGGED_IN_UID", user.uid);
     } else if (signedInUser && signedInUid.uid !== auth.currentUser?.uid) {
       await auth.updateCurrentUser(signedInUser);
     }
