@@ -63,12 +63,6 @@ class Storage {
     }
     this[_data].clear();
   }
-
-  [_customInspect](inspect: typeof Deno.inspect, options: Deno.InspectOptions) {
-    return `${this.constructor.name} ${
-      inspect({ length: this.length }, options)
-    }`;
-  }
 }
 
 class StorageManager {
