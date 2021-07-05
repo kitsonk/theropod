@@ -75,7 +75,13 @@ class Storage {
 }
 
 class StorageManager {
-  [_storage] = new Storage();
+  [_storage]: Storage;
+
+  constructor() {
+    const storage = new Storage();
+    console.log(storage);
+    this[_storage] = storage;
+  }
 
   /** Return an iterable of the keys currently within the store. */
   keys(): IterableIterator<string> {
