@@ -128,8 +128,6 @@ class StorageManager {
 }
 
 const localManager = new StorageManager();
-console.log("localManager", localManager);
-console.log("localManager[_storage]", localManager[_storage]);
 const sessionManager = new StorageManager();
 
 /** Return the local storage manager. */
@@ -155,7 +153,6 @@ export interface InstallGlobalsOptions {
  * `localStorage` and `sessionStorage` if they don't already exist in the global
  * scope. This can be changed by passing options. */
 export function installGlobals(options: InstallGlobalsOptions = {}): void {
-  console.log("installGlobals", options);
   const { local = true, overwrite = false, session = true } = options;
   if (local) {
     if (!("localStorage" in globalThis) || overwrite) {

@@ -20,8 +20,6 @@ import { virtualStorage } from "./virtualStorageMiddleware.ts";
 // setup.
 installGlobals({ overwrite: true });
 
-console.log(globalThis.localStorage);
-
 const users = new Map<string, firebase.User>();
 
 // This is the "client" initialization keys, these end up in a client
