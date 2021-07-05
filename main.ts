@@ -13,8 +13,8 @@ import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
 // create a oak middleware that takes that state and saves it as cookies.  This
 // allows the firebase auth module to persist the authentication of the user to
 // the cookies of the user and have those be restored.
-import { installGlobals } from "./virtualStorage.ts";
-import { virtualStorage } from "./virtualStorageMiddleware.ts";
+import { installGlobals } from "https://deno.land/x/virtualstorage@0.1.0/mod.ts";
+import { virtualStorage } from "https://deno.land/x/virtualstorage@0.1.0/middleware.ts";
 
 // Storage globals need to be installed prior to the application auth being
 // setup.
