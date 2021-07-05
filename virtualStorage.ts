@@ -4,6 +4,8 @@ const _data = Symbol("[[data]]");
 const _set = Symbol("[[set]]");
 const _deleted = Symbol("[[deleted]]");
 
+const _customInspect = Symbol.for("Deno.customInspect");
+
 class Storage {
   [_hydrated] = new Set<string>();
   [_data] = new Map<string, string>();
@@ -60,6 +62,12 @@ class Storage {
       this[_deleted].add(key);
     }
     this[_data].clear();
+  }
+
+  [_customInspect](inspect: typeof Deno.inspect, options: Deno.InspectOptions) {
+    return `${this.constructor.name} ${
+      inspect({ length: this.length }, options)
+    }`;
   }
 }
 
@@ -122,6 +130,7 @@ export interface InstallGlobalsOptions {
  * `localStorage` and `sessionStorage` if they don't already exist in the global
  * scope. This can be changed by passing options. */
 export function installGlobals(options: InstallGlobalsOptions = {}): void {
+  console.log("installGlobals", options);
   const { local = true, overwrite = false, session = true } = options;
   if (local) {
     if (!("localStorage" in globalThis) || overwrite) {
@@ -131,6 +140,7 @@ export function installGlobals(options: InstallGlobalsOptions = {}): void {
         enumerable: true,
         configurable: true,
       });
+      console.log(globalThis.localStorage);
     }
   }
   if (session) {
