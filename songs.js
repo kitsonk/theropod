@@ -17,7 +17,11 @@ import "https://cdn.skypack.dev/firebase@8.7.0/firestore";
 
 // For this tutorial, we are going to use the oak middleware framework to create
 // our APIs and integrate to Firebase.
-import { Application, Router } from "https://deno.land/x/oak@v7.7.0/mod.ts";
+import {
+  Application,
+  Router,
+  Status,
+} from "https://deno.land/x/oak@v7.7.0/mod.ts";
 
 // There is also middleware for oak that will help use with the setting the
 // localStorage cookies for the client
@@ -26,7 +30,6 @@ import { virtualStorage } from "https://deno.land/x/virtualstorage@0.1.0/middlew
 // This will install the polyfill for localStorage
 installGlobals();
 
-// console.log("FIREBASE_CONFIG", Deno.env.get("FIREBASE_CONFIG"));
 const firebaseConfig = JSON.parse(Deno.env.get("FIREBASE_CONFIG"));
 
 const firebaseApp = firebase.initializeApp(firebaseConfig, "example");
@@ -44,6 +47,25 @@ const db = firebase.firestore(firebaseApp);
 
 const router = new Router();
 
+/**
+ * @typedef {Object} Song
+ * @property {string} title
+ * @property {string} album
+ * @property {string} artist
+ * @property {string} released
+ * @property {string} genres
+ */
+
+/**
+ * @param {unknown} value
+ * @returns {value is Song}
+ */
+function isSong(value) {
+  return value !== null && typeof value === "object" && "title" in value &&
+    "album" in value && "artist" in value && "released" in value &&
+    "genres" in value;
+}
+
 router.get("/songs", async (ctx) => {
   const querySnapshot = await db.collection("songs").get();
   ctx.response.body = querySnapshot.docs.map((doc) => doc.data());
@@ -51,7 +73,6 @@ router.get("/songs", async (ctx) => {
 });
 router.get("/songs/:title", async (ctx) => {
   const { title } = ctx.params;
-  console.log("ctx.params.title", title);
   const querySnapshot = await db.collection("songs").where("title", "==", title)
     .get();
   const song = querySnapshot.docs.map((doc) => doc.data())[0];
@@ -64,7 +85,23 @@ router.get("/songs/:title", async (ctx) => {
     ctx.response.type = "json";
   }
 });
-// router.post("/songs", (ctx) => {});
+router.post("/songs", async (ctx) => {
+  const body = ctx.request.body();
+  if (body.type !== "json") {
+    ctx.throw(Status.BadRequest, "Must be a JSON document");
+  }
+  const song = await body.value;
+  if (!isSong(song)) {
+    ctx.throw(Status.BadRequest, "Payload was not well formed");
+  }
+  const querySnapshot = await db
+    .collection("songs")
+    .where("title", "==", title)
+    .get();
+  await Promise.all(querySnapshot.map((doc) => doc.ref.delete()));
+  const songsRef = db.collection("songs");
+  await songsRef.add(song);
+});
 
 const app = new Application();
 
