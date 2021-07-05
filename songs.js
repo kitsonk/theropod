@@ -63,9 +63,7 @@ const router = new Router();
  * @returns {value is Song}
  */
 function isSong(value) {
-  return value !== null && typeof value === "object" && "title" in value &&
-    "album" in value && "artist" in value && "released" in value &&
-    "genres" in value;
+  return typeof value === "object" && value !== null && "title" in value;
 }
 
 router.get("/songs", async (ctx) => {
