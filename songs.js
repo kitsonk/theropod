@@ -101,6 +101,7 @@ router.post("/songs", async (ctx) => {
   await Promise.all(querySnapshot.map((doc) => doc.ref.delete()));
   const songsRef = db.collection("songs");
   await songsRef.add(song);
+  console.log("done");
 });
 
 const app = new Application();
