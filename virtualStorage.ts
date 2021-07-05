@@ -1,8 +1,8 @@
-const _storage = Symbol("[[storage]]");
-const _hydrated = Symbol("[[hydrated]]");
-const _data = Symbol("[[data]]");
-const _set = Symbol("[[set]]");
-const _deleted = Symbol("[[deleted]]");
+const _storage = Symbol.for("[[storage]]");
+const _hydrated = Symbol.for("[[hydrated]]");
+const _data = Symbol.for("[[data]]");
+const _set = Symbol.for("[[set]]");
+const _deleted = Symbol.for("[[deleted]]");
 
 const _customInspect = Symbol.for("Deno.customInspect");
 
