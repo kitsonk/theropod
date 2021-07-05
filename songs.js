@@ -26,7 +26,7 @@ import { virtualStorage } from "https://deno.land/x/virtualstorage@0.1.0/middlew
 // This will install the polyfill for localStorage
 installGlobals();
 
-console.log("FIREBASE_CONFIG", Deno.env.get("FIREBASE_CONFIG"));
+// console.log("FIREBASE_CONFIG", Deno.env.get("FIREBASE_CONFIG"));
 const firebaseConfig = JSON.parse(Deno.env.get("FIREBASE_CONFIG"));
 
 const firebaseApp = firebase.initializeApp(firebaseConfig, "example");
